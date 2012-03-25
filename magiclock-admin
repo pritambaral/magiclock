@@ -1,6 +1,6 @@
 #!/usr/bin/env python2
 
-import dbus, Tkinter
+import dbus, Tkinter,optparse
 from os import environ,kill
 from subprocess import Popen
 from sys import exit, exc_info
@@ -9,53 +9,76 @@ bus=dbus.SystemBus()
 bus_obj=bus.get_object('org.freedesktop.UDisks','/org/freedesktop/UDisks')
 bus_iface=dbus.Interface(bus_obj,'org.freedesktop.UDisks')
 
-rootwindow=Tkinter.Tk()
-rootwindow.title('Select Locking Device')
-frame=Tkinter.Frame(rootwindow)
-RadioVar=Tkinter.StringVar()
+SerialOfLock=''
+LockMode=0
 
-def start_magiclock():
-    try:
-        f=open('/tmp/magiclock.pid')
-        pid=f.read()
-        f.close()
-        if pid != None:
-            pid=int(pid)
-            kill(pid,9)
-    except:
-        print "No magiclock running previously"
-    Popen(['magiclock'],stdout=None)
-
-def save():
-    device=RadioVar.get()
-    dev_obj=bus.get_object('org.freedesktop.UDisks',device)
-    dev_iface=dbus.Interface(dev_obj,dbus.PROPERTIES_IFACE)
-    SerialOfLock=dev_iface.Get('org.freedesktop.UDisks.Device','DriveSerial')
+def start_app():
+    child=Popen(['magiclock'],stdout=None)
+    pid=child.pid
+    configString="{'serial':'%s','pid':%d,'lockmode':%d}" % (SerialOfLock,pid,LockMode)
     try:
         f=open(environ['HOME']+'/.config/magiclock','w')
-        f.write(SerialOfLock)
+        f.write(configString)
         f.close()
-        start_magiclock()
     except:
-        print "Can't write to file"
-        print exc_info()
+        print "Could not save. My apologies"
+        kill(pid,9)
     exit()
 
+RadioVar=''
+CheckVar=0
+frame=0
+def save():
+    device=RadioVar.get()
+    global LockMode
+    LockMode=CheckVar.get()
+    global SerialOfLock
+    if SerialOfLock == '':
+        dev_obj=bus.get_object('org.freedesktop.UDisks',device)
+        dev_iface=dbus.Interface(dev_obj,dbus.PROPERTIES_IFACE)
+        SerialOfLock=dev_iface.Get('org.freedesktop.UDisks.Device','DriveSerial')
+    start_app()
+
+def gui():
+   rootwindow=Tkinter.Tk()
+   global frame
+   rootwindow.title('Select Locking Device')
+   frame=Tkinter.Frame(rootwindow)
+   refresh_frame()
+   rootwindow.mainloop()
+
 def refresh_frame():
-   for w in frame.children.values():
-       w.destroy()
-   for w in bus_iface.get_dbus_method('EnumerateDevices')():
-       get_device_info(w)
+   if SerialOfLock=='':
+      global RadioVar
+      RadioVar=Tkinter.StringVar()
+      for w in frame.children.values():
+          w.destroy()
+      for w in bus_iface.get_dbus_method('EnumerateDevices')():
+          get_device_info(w,frame,RadioVar)
+   if LockMode == -30 :
+      global CheckVar
+      CheckVar=Tkinter.IntVar()
+      CheckBox=Tkinter.Checkbutton(frame,text='Unlock Only', variable=CheckVar)
+      CheckBox.pack()
    Tkinter.Button(frame,text='Save',command=save).pack()
    Tkinter.Button(frame,text='Refresh',command=refresh_frame).pack()
    frame.pack()
 
-def get_device_info(device):
+def get_device_info(device,frame,RadioVar):
     dev_obj=bus.get_object('org.freedesktop.UDisks',device)
     dev_iface=dbus.Interface(dev_obj,dbus.PROPERTIES_IFACE)
     if dev_iface.Get('org.freedesktop.UDisks.Device','DeviceIsDrive'):
         button_text=str(dev_iface.Get('org.freedesktop.UDisks.Device','DeviceFile'))+' '+str(dev_iface.Get('org.freedesktop.UDisks.Device','DriveModel'))
         Tkinter.Radiobutton(frame,text=button_text,variable=RadioVar,value=device).pack(anchor=Tkinter.E)
 
-refresh_frame()
-rootwindow.mainloop()
+parser=optparse.OptionParser("usage: %prog -s <serial> -l <locking mode>\nlocking mode is 0 for both unlocking and locking; 1 for unlocking only")
+
+parser.add_option('-s','--serial',dest='SerialOfLock',type='string',default='',help='Serial of USB Key')
+parser.add_option('-l','--lock',dest='LockMode',type='int',default=-30,help='1 for unlock only, 0 for both')
+(options,args)=parser.parse_args()
+SerialOfLock=options.SerialOfLock
+LockMode=options.LockMode
+if SerialOfLock == '' or LockMode == -30 :
+    gui()
+else:
+    start_app()

@@ -3,12 +3,13 @@
 import dbus
 import gobject
 from dbus.mainloop.glib import DBusGMainLoop
-from os import system,environ,getpid
+from os import system,environ,getpid,kill
 from subprocess import Popen
-from sys import exit
+from sys import exit,stdout,argv
 
 curr_device=''
 SerialOfLock=''
+LockMode=0
 
 def dev_added(device):
     global curr_device
@@ -72,22 +73,49 @@ bus=dbus.SystemBus()
 bus_obj=bus.get_object('org.freedesktop.UDisks','/org/freedesktop/UDisks')
 bus_iface=dbus.Interface(bus_obj,"org.freedesktop.UDisks")
 
-bus_iface.connect_to_signal('DeviceAdded',dev_added)
-bus_iface.connect_to_signal('DeviceRemoved',dev_removed)
 
-
-if __name__=="__main__":
+def readConfig():
+    global SerialOfLock
+    global pid
+    global LockMode
+    configString={'serial':'','pid':0,'lockmode':0}
     try:
-        f=open(environ['HOME']+'/.config/magiclock')
-        SerialOfLock=f.read()
-        f.close()
-    except IOError:
-        print "No Device key configured!"
-        Popen(['magiclock-admin',])
+        config=open(environ['HOME']+'/.config/magiclock')
+        import ast
+        configString.update(ast.literal_eval(config.read()))
+    except:
+        print "No config file found. Please run magiclock-admin."
+        print "No wait, lemme do that for you :P"
+        Popen(['magiclock-admin'])
         exit(1)
+    SerialOfLock=configString['serial']
+    pid=configString['pid']
+    LockMode=configString['lockmode']
+    
+if __name__=="__main__":
+    readConfig()
+
+    if len(argv) > 1 and ('-k' in argv[0:]):
+        kill(pid,9)
+        configString={'serial':'','pid':0,'lockmode':0}
+        config=open(environ['HOME']+'/.config/magiclock')
+        import ast
+        configString.update(ast.literal_eval(config.read()))
+        config.close()
+        configString="{'serial':'%s','lockmode':%d}" % (configString['serial'],configString['lockmode'])
+        config=open(environ['HOME']+'/.config/magiclock','w')
+        config.write(configString)
+        config.close()
+        exit(0)
+	
     loop=gobject.MainLoop()
+
     pid=getpid()
     f=open('/tmp/magiclock.pid','w')
     f.write(str(pid))
     f.close()
+    bus_iface.connect_to_signal('DeviceAdded',dev_added)
+    if LockMode == 0:
+        bus_iface.connect_to_signal('DeviceRemoved',dev_removed)
+
     loop.run()

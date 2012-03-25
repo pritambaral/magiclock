@@ -8,4 +8,14 @@ Ubuntu users: install the python-tk package or create your own $HOME/.config/mag
 
 Running: Just run magiclock.
 
+Advance Usage:
+	magiclock-admin supports two commandline switches: -s <Serial> -l <Locking Mode>
+	Serial is the Manufacturer Serial of the Desired USB Key
+	Locking Mode is 0 for both Unlocking and Locking, 1 for unlocking only
+
+	calling with both switches doesn't call the GUI admin window. Useful if you don't want to install Tk just for this.
+
+	magiclock supports one switch: -k
+	-k is to kill the currently running magiclock process
+
 #TODO expand this README
