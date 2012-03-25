@@ -1,0 +1,93 @@
+#!/usr/bin/python2
+
+import dbus
+import gobject
+from dbus.mainloop.glib import DBusGMainLoop
+from os import system,environ,getpid
+from subprocess import Popen
+from sys import exit
+
+curr_device=''
+SerialOfLock=''
+
+def dev_added(device):
+    global curr_device
+#    print "Current Device: "+str(curr_device)
+#   print "Added Device: "+str(device)
+    dev_obj=bus.get_object('org.freedesktop.UDisks',device)
+    dev_iface=dbus.Interface(dev_obj,dbus.PROPERTIES_IFACE)
+    serial=str(dev_iface.Get('org.freedesktop.UDisks.Device','DriveSerial'))
+#   if serial == 'ARBITTESTINGSERIAL':
+    if serial == str(SerialOfLock) :
+        print "MagicPot connected with serial:"+str(SerialOfLock)
+        try:
+            Popen(['gnome-screensaver-command','-d'])
+        except OSError:
+            pass
+        try:
+            Popen(['xscreensaver-command','-d'])
+        except OSError:
+            pass
+        try:
+            Popen(['qdbus','org.kde.screenlocker','/MainApplication','quit'])
+        except OSError:
+            pass
+        try:
+            Popen(['qdbus','org.kde.plasma-overlay','/MainApplication','quit'])
+        except OSError:
+            pass
+        try:
+            Popen(['qdbus','org.freedesktop.ScreenSaver','/ScreenSaver','SetActive','false'])
+        except OSError:
+            pass
+        curr_device=device
+
+def dev_removed(device):
+    global curr_device
+#    print "Current Device: "+str(curr_device)
+#    print "Removed Device: "+str(device)
+    if (curr_device != '') and (curr_device == device):
+        print "MagicPot bhaag gaya: "+str(SerialOfLock)
+        try:
+            Popen(['gnome-screensaver-command','-l'])
+        except OSError:
+            pass
+        try:
+            Popen(['xscreensaver-command','-l'])
+        except OSError:
+            pass
+        try:
+            Popen(['qdbus','org.freedesktop.ScreenSaver','/ScreenSaver','Lock'])
+        except OSError:
+            pass
+        try:
+            Popen(['qdbus org.freedesktop.ScreenSaver','/ScreenSaver','SetActive','true'])
+        except OSError:
+            pass
+        curr_device=''
+
+DBusGMainLoop(set_as_default=True)
+bus=dbus.SystemBus()
+
+bus_obj=bus.get_object('org.freedesktop.UDisks','/org/freedesktop/UDisks')
+bus_iface=dbus.Interface(bus_obj,"org.freedesktop.UDisks")
+
+bus_iface.connect_to_signal('DeviceAdded',dev_added)
+bus_iface.connect_to_signal('DeviceRemoved',dev_removed)
+
+
+if __name__=="__main__":
+    try:
+        f=open(environ['HOME']+'/.config/magiclock')
+        SerialOfLock=f.read()
+        f.close()
+    except IOError:
+        print "No Device key configured!"
+        Popen(['magiclock-admin',])
+        exit(1)
+    loop=gobject.MainLoop()
+    pid=getpid()
+    f=open('/tmp/magiclock.pid','w')
+    f.write(str(pid))
+    f.close()
+    loop.run()

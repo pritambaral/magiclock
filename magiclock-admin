@@ -1,0 +1,61 @@
+#!/usr/bin/env python2
+
+import dbus, Tkinter
+from os import environ,kill
+from subprocess import Popen
+from sys import exit, exc_info
+
+bus=dbus.SystemBus()
+bus_obj=bus.get_object('org.freedesktop.UDisks','/org/freedesktop/UDisks')
+bus_iface=dbus.Interface(bus_obj,'org.freedesktop.UDisks')
+
+rootwindow=Tkinter.Tk()
+rootwindow.title('Select Locking Device')
+frame=Tkinter.Frame(rootwindow)
+RadioVar=Tkinter.StringVar()
+
+def start_magiclock():
+    try:
+        f=open('/tmp/magiclock.pid')
+        pid=f.read()
+        f.close()
+        if pid != None:
+            pid=int(pid)
+            kill(pid,9)
+    except:
+        print "No magiclock running previously"
+    Popen(['magiclock'],stdout=None)
+
+def save():
+    device=RadioVar.get()
+    dev_obj=bus.get_object('org.freedesktop.UDisks',device)
+    dev_iface=dbus.Interface(dev_obj,dbus.PROPERTIES_IFACE)
+    SerialOfLock=dev_iface.Get('org.freedesktop.UDisks.Device','DriveSerial')
+    try:
+        f=open(environ['HOME']+'/.config/magiclock','w')
+        f.write(SerialOfLock)
+        f.close()
+        start_magiclock()
+    except:
+        print "Can't write to file"
+        print exc_info()
+    exit()
+
+def refresh_frame():
+   for w in frame.children.values():
+       w.destroy()
+   for w in bus_iface.get_dbus_method('EnumerateDevices')():
+       get_device_info(w)
+   Tkinter.Button(frame,text='Save',command=save).pack()
+   Tkinter.Button(frame,text='Refresh',command=refresh_frame).pack()
+   frame.pack()
+
+def get_device_info(device):
+    dev_obj=bus.get_object('org.freedesktop.UDisks',device)
+    dev_iface=dbus.Interface(dev_obj,dbus.PROPERTIES_IFACE)
+    if dev_iface.Get('org.freedesktop.UDisks.Device','DeviceIsDrive'):
+        button_text=str(dev_iface.Get('org.freedesktop.UDisks.Device','DeviceFile'))+' '+str(dev_iface.Get('org.freedesktop.UDisks.Device','DriveModel'))
+        Tkinter.Radiobutton(frame,text=button_text,variable=RadioVar,value=device).pack(anchor=Tkinter.E)
+
+refresh_frame()
+rootwindow.mainloop()
