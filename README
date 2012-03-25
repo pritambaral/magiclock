@@ -1,5 +1,11 @@
 A simple python utility to Unlock/Lock one's desktop screen with a PenDrive
 
-Just run magiclock.
+Dependencies: Python2, UDev, UDisks, Tk python2-gobject
+
+Make sure both the magiclock and magiclock-admin scripts are in your PATH and executable
+
+Ubuntu users: install the python-tk package or create your own $HOME/.config/magiclock file with the Manufacturer Serial of the desired USB Key
+
+Running: Just run magiclock.
 
 #TODO expand this README
