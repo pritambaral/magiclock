@@ -1,6 +1,6 @@
 #!/usr/bin/env python2
 
-import dbus, Tkinter,optparse
+import dbus,optparse
 from os import environ,kill
 from subprocess import Popen
 from sys import exit, exc_info
@@ -79,6 +79,7 @@ parser.add_option('-l','--lock',dest='LockMode',type='int',default=-30,help='1 f
 SerialOfLock=options.SerialOfLock
 LockMode=options.LockMode
 if SerialOfLock == '' or LockMode == -30 :
+    import Tkinter
     gui()
 else:
     start_app()
