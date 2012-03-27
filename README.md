@@ -64,9 +64,6 @@ Features:
 * Just set the key, add the script to your DE's autostart list and forget about it
 
 
-
-
-
 Insights of Define Lens
 -------
 
@@ -75,6 +72,20 @@ The script uses DBus to listen for UDisks signals when a device is either added 
 Locking and Unlocking is achieved by DE provided mechanisms, thus it is extensible/flexible for any compliant DE. (All freedesktop ScreenSaver specification compliant DE's work OOTB)
 
 
+Advanced Usage
+-------
+
+magiclock-admin -h explains the usage
+
+USAGE: magiclock-admin [-s <Serial>] [-l <Locking mode>]
+
+where Serial is the manufacturer serial of the device you want to use as key. Locking mode is 0 for two-way operation, 1 for unlocking only.
+
+upon successful exit, magiclock-admin restarts/starts the magiclock script in the background
+
+USAGE: magiclock [-k]
+
+-k kills the current running magiclock process
 
 Authors
 -------
