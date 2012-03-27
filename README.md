@@ -1,4 +1,3 @@
-
 MagicLock
 =================
 
@@ -77,9 +76,9 @@ Advanced Usage
 
 magiclock-admin -h explains the usage
 
-USAGE: magiclock-admin [-s <Serial>] [-l <Locking mode>]
+USAGE: magiclock-admin [-s SERIAL] [-l LOCKING MODE]
 
-where Serial is the manufacturer serial of the device you want to use as key. Locking mode is 0 for two-way operation, 1 for unlocking only.
+where SERIAL is the manufacturer serial of the device you want to use as key. LOCKING MODE is 0 for two-way operation, 1 for unlocking only.
 
 upon successful exit, magiclock-admin restarts/starts the magiclock script in the background
 
