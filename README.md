@@ -1,5 +1,5 @@
 
-[MagicLock]
+MagicLock
 =================
 
 A script to unlock/lock one's screen using a pre-authenticated USB Drive.
@@ -9,7 +9,7 @@ Developed by [Chhatoi Pritam Baral](http://pritambaral.com) and [Rahil Momin](ht
 
 Hack Night Competition - 2012, IIT Bombay
 -----------
-This application was developed in Hack Night Competition organized by [Web and Coding Club](http://stab-iitb.org/wncc). To know about other application developed in Hack Night visit [Web and Coding Club at GitHub](https://github.com/wncc)
+This application was developed in Hack Night Competition organized by [Web and Coding Club](http://stab-iitb.org/wncc). To know about other applications developed in Hack Night visit [Web and Coding Club at GitHub](https://github.com/wncc)
 
 You can visit Web and Coding Club on [WnCC Wiki](http://stab-iitb.org/wiki/Web_n_Coding_club)
 
@@ -54,9 +54,13 @@ Just place the two scripts anywhere in your path and call either of the two.
 Changing options is acheived through the magiclock-admin script (both GUI based and command-line)
 
 Features:
+
 * Use any USB Removable media as a key to your workstation! (Got any broken Pen Drives lying around?)
+
 * Convenience! No need to type in the extra-long password everytime (Especially if one is a security freak!)
+
 * Also, no need to tell the script your system password (unlike some similar Windows tools :P )
+
 * Just set the key, add the script to your DE's autostart list and forget about it
 
 
@@ -76,14 +80,20 @@ Authors
 -------
 
 **Chhatoi Pritam Baral**
+
 **Department of Aerospace Engineering**
+
 **Indian Institute of Technology, Bombay**
+
 + http://pritambaral.com
 + http://facebook.com/pritambaral
 
 **Rahil Momin**
+
 **Department of Civil Engineering**
+
 **Indian Institute of Technology, Bombay**
+
 + http://facebook.com/rahil.rules.you
 
 
@@ -91,6 +101,7 @@ Copyright and license
 ---------------------
 
 Copyright 2012 Chhatoi Pritam Baral <pritam@pritambaral.com>
+
 Copyright 2012 Rahil Momin <rahil.rules.you@gmail.com>
 
 License: [WTFPL](http://sam.zoy.org/wtfpl/)
