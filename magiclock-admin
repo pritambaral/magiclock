@@ -12,7 +12,17 @@ bus_iface=dbus.Interface(bus_obj,'org.freedesktop.UDisks')
 SerialOfLock=''
 LockMode=0
 
+def kill_app():
+    try:
+        config=open(environ['HOME']+'/.config/magiclock')
+        import ast
+        pid=ast.literal_eval(config.read())['pid']
+        kill(pid,15)
+    except:
+        pass
+
 def start_app():
+    kill_app()
     child=Popen(['magiclock'],stdout=None)
     pid=child.pid
     configString="{'serial':'%s','pid':%d,'lockmode':%d}" % (SerialOfLock,pid,LockMode)
@@ -36,7 +46,10 @@ def save():
     if SerialOfLock == '':
         dev_obj=bus.get_object('org.freedesktop.UDisks',device)
         dev_iface=dbus.Interface(dev_obj,dbus.PROPERTIES_IFACE)
-        SerialOfLock=dev_iface.Get('org.freedesktop.UDisks.Device','DriveSerial')
+        from hashlib import sha256
+        s=sha256()
+        s.update(dev_iface.Get('org.freedesktop.UDisks.Device','DriveSerial'))
+        SerialOfLock=str(s.digest())
     start_app()
 
 def gui():

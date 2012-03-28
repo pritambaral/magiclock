@@ -63,7 +63,7 @@ Features:
 * Just set the key, add the script to your DE's autostart list and forget about it
 
 
-Insights of Define Lens
+Insights
 -------
 
 The script uses DBus to listen for UDisks signals when a device is either added or removed

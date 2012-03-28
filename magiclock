@@ -6,6 +6,7 @@ from dbus.mainloop.glib import DBusGMainLoop
 from os import system,environ,getpid,kill,close
 from subprocess import Popen
 from sys import exit,stdout,stdin,stderr,argv
+from hashlib import sha256
 
 curr_device=''
 SerialOfLock=''
@@ -33,14 +34,16 @@ def daemonize():
 
 def dev_added(device):
     global curr_device
+    s=sha256()
 #    print "Current Device: "+str(curr_device)
 #   print "Added Device: "+str(device)
     dev_obj=bus.get_object('org.freedesktop.UDisks',device)
     dev_iface=dbus.Interface(dev_obj,dbus.PROPERTIES_IFACE)
-    serial=str(dev_iface.Get('org.freedesktop.UDisks.Device','DriveSerial'))
+    s.update(str(dev_iface.Get('org.freedesktop.UDisks.Device','DriveSerial')))
+    serial=str(s.digest())
 #   if serial == 'ARBITTESTINGSERIAL':
-    if serial == str(SerialOfLock) :
-        print "MagicPot connected with serial:"+str(SerialOfLock)
+    if serial == SerialOfLock :
+#        print "MagicPot connected with serial:"+str(SerialOfLock)
         try:
             Popen(['gnome-screensaver-command','-d'])
         except OSError:
@@ -68,7 +71,7 @@ def dev_removed(device):
 #    print "Current Device: "+str(curr_device)
 #    print "Removed Device: "+str(device)
     if (curr_device != '') and (curr_device == device):
-        print "MagicPot bhaag gaya: "+str(SerialOfLock)
+#        print "MagicPot bhaag gaya: "+str(SerialOfLock)
         try:
             Popen(['gnome-screensaver-command','-l'])
         except OSError:
@@ -92,7 +95,6 @@ bus=dbus.SystemBus()
 
 bus_obj=bus.get_object('org.freedesktop.UDisks','/org/freedesktop/UDisks')
 bus_iface=dbus.Interface(bus_obj,"org.freedesktop.UDisks")
-
 
 def readConfig():
     global SerialOfLock
@@ -128,7 +130,6 @@ if __name__=="__main__":
         if pid == 0:
             print "No process to kill!"
             exit() 
-        kill(pid,9)
         configString={'serial':'','pid':0,'lockmode':0}
         config=open(environ['HOME']+'/.config/magiclock')
         import ast
@@ -138,6 +139,7 @@ if __name__=="__main__":
         config=open(environ['HOME']+'/.config/magiclock','w')
         config.write(configString)
         config.close()
+        kill(pid,15)
         exit(0)
 	
     loop=gobject.MainLoop()
